@@ -1,8 +1,10 @@
-package com.logaa.leetcode;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 
@@ -38,48 +40,47 @@ public class Solution30 {
 		int wordLen = words[0].length();
 		int totalWordLen = size * wordLen;
 		if(totalWordLen > s.length()) return res;
-		Map<String, List<Integer>> substringsMap = new HashMap<String, List<Integer>>();
+		Set<String> keySet = new HashSet<String>();
+		List<Integer> indexs = new ArrayList<Integer>();
 		for (String word : words) {
-			ArrayList<Integer> indexs = new ArrayList<Integer>();
-			if(substringsMap.get(word) != null) continue;
-			int fromIndex = 0;
+			if(keySet.contains(word)) continue;
+			int startIndex, endIndex, fromIndex = 0;
 			while (fromIndex <= s.length()) { 
-				int startIndex = s.indexOf(word, fromIndex);
-				int endIndex =  startIndex + totalWordLen;
+				startIndex = s.indexOf(word, fromIndex);
+				endIndex =  startIndex + totalWordLen;
 				if(startIndex < 0 || endIndex > s.length()) break;
 				indexs.add(startIndex);
 				fromIndex = startIndex + 1;
 			}
-			if(!indexs.isEmpty()) substringsMap.put(word, indexs);
+			if(fromIndex > 0) keySet.add(word);
 		}
-		if(substringsMap.isEmpty()) return res;
-		List<Integer> indexs = new ArrayList<Integer>();
-		substringsMap.forEach((k, v)->indexs.addAll(v));
+		if(indexs.isEmpty()) return res;
 		Map<String, Integer> wordTimesMap = new HashMap<String, Integer>();
 		for (String word : words) wordTimesMap.put(word, wordTimesMap.getOrDefault(word, 0) + 1);
 		Map<String, Integer> temp = new HashMap<String, Integer>();
 		for (Integer index : indexs) {
-			int times = 0, j = 0;
 			temp.putAll(wordTimesMap);
 			int endIndex = index + totalWordLen;
-			while (j<size) {
-				int fromIndex = index + j * wordLen;
-				int toIndex = fromIndex + wordLen;
+			boolean isContainsKey = true;
+			int fromIndex, toIndex, j = -1;
+			while (++j < size) {
+				fromIndex = index + j * wordLen;
+				toIndex = fromIndex + wordLen;
 				if(toIndex > endIndex) break;
 				String subWord = s.substring(fromIndex, toIndex);
 				if(temp.containsKey(subWord)){
 					int wordTimes = temp.get(subWord);
-					wordTimes--;
-					if(wordTimes < 1) {
+					if(--wordTimes < 1) {
 						temp.remove(subWord);
 					}else {
 						temp.put(subWord, wordTimes);
 					}
-					times++;
+				}else {
+					isContainsKey = false;
+					break;
 				}
-				j++;
 			}
-			if(times == words.length) res.add(index);
+			if(isContainsKey) res.add(index);
 			temp.clear();
 		}
         return res;
